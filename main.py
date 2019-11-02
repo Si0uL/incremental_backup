@@ -4,6 +4,10 @@ from shutil import copy2
 INPUT_PATH = ""
 OUTPUT_PATH = ""
 
+# Ugly fix for special characters
+def enc(string):
+    return str(string.encode("utf-8"))[2:-1]
+
 if len(sys.argv) < 2:
     print("usage: {} <logfile>".format(sys.argv[0]))
     sys.exit()
@@ -30,11 +34,11 @@ for (in_dirpath, dirnames, filenames) in os.walk(INPUT_PATH):
     if not os.path.exists(out_dirpath):
         try:
             os.mkdir(out_dirpath)
-            logging.debug("Created dir: %s", out_dirpath)
+            logging.debug("Created dir: %s", enc(out_dirpath))
         except PermissionError as err:
             errors_nb += 1
             logging.debug("[ERROR] Error while creating dir: %s\n%s",
-                out_dirpath, err)
+                enc(out_dirpath), err)
 
     for fname in filenames:
         in_filepath = os.path.join(in_dirpath, fname)
@@ -43,11 +47,12 @@ for (in_dirpath, dirnames, filenames) in os.walk(INPUT_PATH):
             os.path.getmtime(in_filepath) > os.path.getmtime(out_filepath):
             try:
                 copy2(in_filepath, out_filepath)
-                logging.debug("Copied %s to %s", in_filepath, out_filepath)
+                logging.debug("Copied %s to %s", enc(in_filepath),
+                    enc(out_filepath))
             except PermissionError as err:
                 errors_nb += 1
                 logging.error("[ERROR] Error while copying %s to %s\n%s",
-                    in_filepath, out_filepath, err)
+                    enc(in_filepath), enc(out_filepath), err)
 logging.info("ENDED COPY PHASE")
 logging.info("Copy phase duration: %s",
     time.strftime("%H:%M:%S", time.gmtime(time.time() - start_time)))
@@ -70,19 +75,20 @@ for (out_dirpath, dirnames, filenames) in os.walk(OUTPUT_PATH):
 for fpath in files_to_rm:
     try:
         os.remove(fpath)
-        logging.debug("Removed file: %s", fpath)
+        logging.debug("Removed file: %s", enc(fpath))
     except PermissionError as err:
         errors_nb += 1
         logging.error("[ERROR] Error while trying to remove file: %s\n%s",
-            fpath, err)
+            enc(fpath), err)
 for dpath in reversed(dirs_to_rm):
     time.sleep(0.1)
     try:
         os.rmdir(dpath)
-        logging.debug("Removed dir: %s", dpath)
+        logging.debug("Removed dir: %s", enc(dpath))
     except PermissionError as err:
         errors_nb += 1
-        logging.debug("[ERROR] Error while removing dir: %s\n%s", dpath, err)
+        logging.debug("[ERROR] Error while removing dir: %s\n%s", enc(dpath),
+            err)
 
 logging.info("ENDED REMOVAL PHASE")
 logging.info("Removal phase duration: %s",
