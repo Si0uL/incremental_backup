@@ -6,11 +6,18 @@ OUTPUT_PATH = ""
 
 if len(sys.argv) < 2:
     print("usage: {} <logfile>".format(sys.argv[0]))
+    sys.exit()
 
 logging.basicConfig(format='%(asctime)s %(message)s', filename=sys.argv[1],
     level=logging.DEBUG, datefmt='%m/%d/%Y %I:%M:%S %p')
 
-assert os.path.isdir(INPUT_PATH) and os.path.isdir(OUTPUT_PATH)
+if not os.path.isdir(INPUT_PATH):
+    print("INPUT_PATH {} is not a directory".format(INPUT_PATH))
+    sys.exit()
+
+if not os.path.isdir(OUTPUT_PATH):
+    print("OUTPUT_PATH {} is not a directory".format(OUTPUT_PATH))
+    sys.exit()
 
 # Copy phase
 logging.info("STARTING COPY PHASE")
