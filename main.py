@@ -23,6 +23,7 @@ if not os.path.isdir(OUTPUT_PATH):
 logging.info("STARTING COPY PHASE")
 start_time = time.time()
 
+errors_nb = 0
 out_dirpath, in_filepath, out_filepath = "", "", ""
 for (in_dirpath, dirnames, filenames) in os.walk(INPUT_PATH):
     out_dirpath = in_dirpath.replace(INPUT_PATH, OUTPUT_PATH)
@@ -31,6 +32,7 @@ for (in_dirpath, dirnames, filenames) in os.walk(INPUT_PATH):
             os.mkdir(out_dirpath)
             logging.debug("Created dir: %s", out_dirpath)
         except PermissionError as err:
+            errors_nb += 1
             logging.debug("[ERROR] Error while creating dir: %s\n%s",
                 out_dirpath, err)
 
@@ -43,6 +45,7 @@ for (in_dirpath, dirnames, filenames) in os.walk(INPUT_PATH):
                 copy2(in_filepath, out_filepath)
                 logging.debug("Copied %s to %s", in_filepath, out_filepath)
             except PermissionError as err:
+                errors_nb += 1
                 logging.error("[ERROR] Error while copying %s to %s\n%s",
                     in_filepath, out_filepath, err)
 logging.info("ENDED COPY PHASE")
@@ -69,6 +72,7 @@ for fpath in files_to_rm:
         os.remove(fpath)
         logging.debug("Removed file: %s", fpath)
     except PermissionError as err:
+        errors_nb += 1
         logging.error("[ERROR] Error while trying to remove file: %s\n%s",
             fpath, err)
 for dpath in reversed(dirs_to_rm):
@@ -77,8 +81,13 @@ for dpath in reversed(dirs_to_rm):
         os.rmdir(dpath)
         logging.debug("Removed dir: %s", dpath)
     except PermissionError as err:
+        errors_nb += 1
         logging.debug("[ERROR] Error while removing dir: %s\n%s", dpath, err)
 
 logging.info("ENDED REMOVAL PHASE")
 logging.info("Removal phase duration: %s",
     time.strftime("%H:%M:%S", time.gmtime(time.time() - start_time)))
+
+if errors_nb > 0:
+    print("Script ended with {} errors, check log file for more details".format(
+        errors_nb))
