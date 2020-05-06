@@ -1,8 +1,8 @@
 import os, logging, sys, time
 from shutil import copy2
 
-INPUT_PATH = ""
-OUTPUT_PATH = ""
+INPUT_PATH = "D:\\Louis"
+OUTPUT_PATH = "G:\\Louis_backup"
 
 # Ugly fix for special characters
 def enc(string):
@@ -85,7 +85,7 @@ for dpath in reversed(dirs_to_rm):
     try:
         os.rmdir(dpath)
         logging.debug("Removed dir: %s", enc(dpath))
-    except PermissionError as err:
+    except (PermissionError, OSError) as err:
         errors_nb += 1
         logging.debug("[ERROR] Error while removing dir: %s\n%s", enc(dpath),
             err)
@@ -95,5 +95,5 @@ logging.info("Removal phase duration: %s",
     time.strftime("%H:%M:%S", time.gmtime(time.time() - start_time)))
 
 if errors_nb > 0:
-    print("Script ended with {} errors, check log file for more details".format(
+    print("[WARNING] Script ended with {} errors, check log file for more details".format(
         errors_nb))
