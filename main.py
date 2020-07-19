@@ -99,10 +99,6 @@ if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.ini'))
 
-    print(config['OUTPUT']['path'])
-    for dir in config['INPUT']:
-        print(config['INPUT'][dir])
-
     main_out_path = config['OUTPUT']['path']
     if not os.path.isdir(main_out_path):
         print(f"Output_Path {enc(main_out_path)} is not a directory")
