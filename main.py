@@ -1,4 +1,5 @@
 import os, logging, sys, time, configparser
+from datetime import datetime
 from shutil import copy2
 
 # Ugly fix for special characters
@@ -83,11 +84,16 @@ def update_repo(input_path, dest_path):
 
 if __name__ == '__main__':
 
-    if len(sys.argv) < 2:
-        print("usage: {} <logfile>".format(sys.argv[0]))
-        sys.exit()
+    log_idx = 1
+    log_file_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        datetime.today().strftime("%Y%m%d") + "-1.log"
+    )
+    while os.path.exists(log_file_path):
+        log_idx += 1
+        log_file_path = log_file_path[:-5] + str(log_idx) + '.log'
 
-    logging.basicConfig(format='%(asctime)s %(message)s', filename=sys.argv[1],
+    logging.basicConfig(format='%(asctime)s %(message)s', filename=log_file_path,
         level=logging.DEBUG, datefmt='%m/%d/%Y %I:%M:%S %p')
 
     config = configparser.ConfigParser()
