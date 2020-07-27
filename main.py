@@ -81,6 +81,8 @@ def update_repo(input_path, dest_path):
     if errors_nb > 0:
         print(f"[WARNING] {os.path.basename} sync. ended with {errors_nb} errors, " + \
             "check log file for more details")
+    else:
+        print(f"{os.path.basename} synchronization finished successfully.")
 
 if __name__ == '__main__':
 
@@ -113,3 +115,6 @@ if __name__ == '__main__':
 
         out_path = os.path.join(main_out_path, os.path.basename(in_path))
         update_repo(in_path, out_path)
+
+    # freeze output for windows usage
+    _ = input()
