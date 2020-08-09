@@ -79,10 +79,10 @@ def update_repo(input_path, dest_path):
         time.strftime("%H:%M:%S", time.gmtime(time.time() - start_time)))
 
     if errors_nb > 0:
-        print(f"[WARNING] {os.path.basename} sync. ended with {errors_nb} errors, " + \
+        print(f"[WARNING] {os.path.basename(input_path)}/ sync. ended with {errors_nb} errors, " + \
             "check log file for more details")
     else:
-        print(f"{os.path.basename} synchronization finished successfully.")
+        print(f"{os.path.basename(input_path)}/ synchronization finished successfully.")
 
 if __name__ == '__main__':
 
@@ -108,13 +108,14 @@ if __name__ == '__main__':
 
     for dir in config['INPUT']:
         in_path = config['INPUT'][dir]
+        out_path = os.path.join(main_out_path, os.path.basename(in_path))
         if not os.path.isdir(in_path):
             print(f"input_path {enc(in_path)} is not a directory")
             logging.error("input_path %s is not a directory", enc(in_path))
-            continue
-
-        out_path = os.path.join(main_out_path, os.path.basename(in_path))
-        update_repo(in_path, out_path)
+        else:
+            print(f"working on: {os.path.basename(in_path)}/")
+            update_repo(in_path, out_path)
 
     # freeze output for windows usage
+    print("All folders synchronized, you can close me.")
     _ = input()
