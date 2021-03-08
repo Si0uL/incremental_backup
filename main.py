@@ -21,7 +21,7 @@ def update_repo(input_path, dest_path):
                 logging.debug("Created dir: %s", enc(out_dirpath))
             except PermissionError as err:
                 errors_nb += 1
-                logging.debug("[ERROR] Error while creating dir: %s\n%s",
+                logging.error("[ERROR] Error while creating dir: %s\n%s",
                     enc(out_dirpath), err)
 
         for fname in filenames:
@@ -60,7 +60,7 @@ def update_repo(input_path, dest_path):
         try:
             os.remove(fpath)
             logging.debug("Removed file: %s", enc(fpath))
-        except PermissionError as err:
+        except (PermissionError, OSError) as err:
             errors_nb += 1
             logging.error("[ERROR] Error while trying to remove file: %s\n%s",
                 enc(fpath), err)
