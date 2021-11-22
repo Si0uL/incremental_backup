@@ -1,0 +1,11 @@
+[INPUT]
+# Key names have no impact
+dir1 = X:\whatever
+dir2 = Y:\What ever\dir
+
+[OUTPUT]
+# Drive name to detect and overwrite drive letter contained in 'path'
+drive_name = MY-DISK
+# Has one single directory that will contain all the input directories
+# Use any letter if drive_name supplied, will be autocompleted
+path = X:\Backup

@@ -1,8 +1,37 @@
 import os, logging, sys, time, configparser
+import string
+import ctypes
 from datetime import datetime
 from shutil import copy2
+from typing import Generator
 
 logger = logging.getLogger('incr_backup')
+
+def get_drives() -> Generator:
+    bitmask = ctypes.windll.kernel32.GetLogicalDrives()
+    for letter in string.ascii_uppercase:
+        if bitmask & 1:
+            yield letter
+        bitmask >>= 1
+
+def get_drive_name(letter: str) -> str:
+    volumeNameBuffer = ctypes.create_unicode_buffer(1024)
+    fileSystemNameBuffer = ctypes.create_unicode_buffer(1024)
+    serial_number = None
+    max_component_length = None
+    file_system_flags = None
+
+    ctypes.windll.kernel32.GetVolumeInformationW(
+        ctypes.c_wchar_p(f"{letter}:\\"),
+        volumeNameBuffer,
+        ctypes.sizeof(volumeNameBuffer),
+        serial_number,
+        max_component_length,
+        file_system_flags,
+        fileSystemNameBuffer,
+        ctypes.sizeof(fileSystemNameBuffer)
+    )
+    return volumeNameBuffer.value
 
 # Ugly fix for special characters
 def enc(to_be_escaped: str) -> str:
@@ -119,6 +148,19 @@ if __name__ == '__main__':
     config.read(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.ini'))
 
     main_out_path = config['OUTPUT']['path']
+    if 'drive_name' in config['OUTPUT']:
+        found_letter = None
+        target_name = config['OUTPUT']['drive_name']
+        for drive_letter in get_drives():
+            name = get_drive_name(drive_letter)
+            if name == target_name:
+                found_letter = drive_letter
+        assert found_letter, f"Couldn't find drive {target_name}"
+        logger.debug("Automatically found driver letter %s: for drive %s",
+                     found_letter, target_name)
+        # Replace path letter with found one
+        main_out_path = found_letter + main_out_path[1:]
+
     if not os.path.isdir(main_out_path):
         logger.error("Output_Path %s is not a directory", enc(main_out_path))
         sys.exit()
