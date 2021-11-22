@@ -5,17 +5,17 @@ from shutil import copy2
 logger = logging.getLogger('incr_backup')
 
 # Ugly fix for special characters
-def enc(string):
-    return str(string.encode("utf-8"))[2:-1]
+def enc(to_be_escaped: str) -> str:
+    return str(to_be_escaped.encode("utf-8"))[2:-1]
 
-def update_repo(input_path, dest_path):
+def update_repo(input_path: str, dest_path: str) -> None:
     # Copy phase
     logger.debug("STARTING COPY PHASE FOR %s", os.path.basename(input_path))
     start_time = time.time()
 
     errors_nb = 0
     out_dirpath, in_filepath, out_filepath = "", "", ""
-    for (in_dirpath, dirnames, filenames) in os.walk(input_path):
+    for (in_dirpath, _, filenames) in os.walk(input_path):
         out_dirpath = in_dirpath.replace(input_path, dest_path)
         if not os.path.exists(out_dirpath):
             try:
@@ -48,7 +48,7 @@ def update_repo(input_path, dest_path):
     start_time = time.time()
 
     dirs_to_rm, files_to_rm = [], []
-    for (out_dirpath, dirnames, filenames) in os.walk(dest_path):
+    for (out_dirpath, _, filenames) in os.walk(dest_path):
         in_dirpath = out_dirpath.replace(dest_path, input_path)
         if not os.path.exists(in_dirpath):
             dirs_to_rm.append(out_dirpath)
@@ -123,8 +123,8 @@ if __name__ == '__main__':
         logger.error("Output_Path %s is not a directory", enc(main_out_path))
         sys.exit()
 
-    for dir in config['INPUT']:
-        in_path = config['INPUT'][dir]
+    for target_dir in config['INPUT']:
+        in_path = config['INPUT'][target_dir]
         out_path = os.path.join(main_out_path, os.path.basename(in_path))
         if not os.path.isdir(in_path):
             logger.error("input_path %s is not a directory", enc(in_path))
