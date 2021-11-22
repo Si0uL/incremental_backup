@@ -2,13 +2,15 @@ import os, logging, sys, time, configparser
 from datetime import datetime
 from shutil import copy2
 
+logger = logging.getLogger('incr_backup')
+
 # Ugly fix for special characters
 def enc(string):
     return str(string.encode("utf-8"))[2:-1]
 
 def update_repo(input_path, dest_path):
     # Copy phase
-    logging.info(f"STARTING COPY PHASE FOR {os.path.basename(input_path)}")
+    logger.debug("STARTING COPY PHASE FOR %s", os.path.basename(input_path))
     start_time = time.time()
 
     errors_nb = 0
@@ -18,10 +20,10 @@ def update_repo(input_path, dest_path):
         if not os.path.exists(out_dirpath):
             try:
                 os.mkdir(out_dirpath)
-                logging.debug("Created dir: %s", enc(out_dirpath))
+                logger.debug("Created dir: %s", enc(out_dirpath))
             except PermissionError as err:
                 errors_nb += 1
-                logging.error("[ERROR] Error while creating dir: %s\n%s",
+                logger.error("[ERROR] Error while creating dir: %s\n%s",
                     enc(out_dirpath), err)
 
         for fname in filenames:
@@ -31,18 +33,18 @@ def update_repo(input_path, dest_path):
                 os.path.getmtime(in_filepath) > os.path.getmtime(out_filepath):
                 try:
                     copy2(in_filepath, out_filepath)
-                    logging.debug("Copied %s to %s", enc(in_filepath),
+                    logger.debug("Copied %s to %s", enc(in_filepath),
                         enc(out_filepath))
                 except PermissionError as err:
                     errors_nb += 1
-                    logging.error("[ERROR] Error while copying %s to %s\n%s",
+                    logger.error("[ERROR] Error while copying %s to %s\n%s",
                         enc(in_filepath), enc(out_filepath), err)
-    logging.info(f"ENDED COPY PHASE FOR {os.path.basename(input_path)}")
-    logging.info("Copy phase duration: %s\n",
+    logger.debug("ENDED COPY PHASE FOR %s", os.path.basename(input_path))
+    logger.info("Copy phase duration: %s",
         time.strftime("%H:%M:%S", time.gmtime(time.time() - start_time)))
 
     # Removal phase
-    logging.info(f"STARTING REMOVAL PHASE FOR {os.path.basename(input_path)}")
+    logger.debug("STARTING REMOVAL PHASE FOR %s", os.path.basename(input_path))
     start_time = time.time()
 
     dirs_to_rm, files_to_rm = [], []
@@ -59,30 +61,30 @@ def update_repo(input_path, dest_path):
     for fpath in files_to_rm:
         try:
             os.remove(fpath)
-            logging.debug("Removed file: %s", enc(fpath))
+            logger.debug("Removed file: %s", enc(fpath))
         except (PermissionError, OSError) as err:
             errors_nb += 1
-            logging.error("[ERROR] Error while trying to remove file: %s\n%s",
+            logger.error("[ERROR] Error while trying to remove file: %s\n%s",
                 enc(fpath), err)
     for dpath in reversed(dirs_to_rm):
         time.sleep(0.1)
         try:
             os.rmdir(dpath)
-            logging.debug("Removed dir: %s", enc(dpath))
+            logger.debug("Removed dir: %s", enc(dpath))
         except (PermissionError, OSError) as err:
             errors_nb += 1
-            logging.debug("[ERROR] Error while removing dir: %s\n%s", enc(dpath),
+            logger.debug("[ERROR] Error while removing dir: %s\n%s", enc(dpath),
                 err)
 
-    logging.info(f"ENDED REMOVAL PHASE FOR {os.path.basename(input_path)}")
-    logging.info("Removal phase duration: %s\n\n",
+    logger.debug("ENDED REMOVAL PHASE FOR %s", os.path.basename(input_path))
+    logger.info("Removal phase duration: %s",
         time.strftime("%H:%M:%S", time.gmtime(time.time() - start_time)))
 
     if errors_nb > 0:
-        print(f"[WARNING] {os.path.basename(input_path)}/ sync. ended with {errors_nb} errors, " + \
-            "check log file for more details")
+        logger.warning("%s/ sync. ended with %d errors, check log file for more details\n",
+                        os.path.basename(input_path), errors_nb)
     else:
-        print(f"{os.path.basename(input_path)}/ synchronization finished successfully.")
+        logger.info("%s/ synchronization finished successfully.\n", os.path.basename(input_path))
 
 if __name__ == '__main__':
 
@@ -93,29 +95,43 @@ if __name__ == '__main__':
     )
     while os.path.exists(log_file_path):
         log_idx += 1
-        log_file_path = log_file_path[:-5] + str(log_idx) + '.log'
+        log_file_path = f"{log_file_path.split('-')[0]}-{log_idx}.log"
 
-    logging.basicConfig(format='%(asctime)s %(message)s', filename=log_file_path,
-        level=logging.DEBUG, datefmt='%m/%d/%Y %I:%M:%S %p')
+    logger.setLevel(logging.DEBUG)
+
+    file_handler = logging.FileHandler(log_file_path)
+    file_handler.setLevel(logging.DEBUG)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+
+    formatter = logging.Formatter(
+        fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%m/%d/%Y %I:%M:%S %p'
+    )
+    file_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
 
     config = configparser.ConfigParser()
     config.read(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.ini'))
 
     main_out_path = config['OUTPUT']['path']
     if not os.path.isdir(main_out_path):
-        print(f"Output_Path {enc(main_out_path)} is not a directory")
+        logger.error("Output_Path %s is not a directory", enc(main_out_path))
         sys.exit()
 
     for dir in config['INPUT']:
         in_path = config['INPUT'][dir]
         out_path = os.path.join(main_out_path, os.path.basename(in_path))
         if not os.path.isdir(in_path):
-            print(f"input_path {enc(in_path)} is not a directory")
-            logging.error("input_path %s is not a directory", enc(in_path))
+            logger.error("input_path %s is not a directory", enc(in_path))
         else:
-            print(f"working on: {os.path.basename(in_path)}/")
+            logger.info("working on: %s/", os.path.basename(in_path))
             update_repo(in_path, out_path)
 
+    logger.info("All folders synchronized, you can close me!")
     # freeze output for windows usage
-    print("All folders synchronized, you can close me.")
     _ = input()
