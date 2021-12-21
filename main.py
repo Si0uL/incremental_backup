@@ -52,7 +52,7 @@ def update_repo(input_path: str, dest_path: str) -> None:
                 logger.debug("Created dir: %s", enc(out_dirpath))
             except PermissionError as err:
                 errors_nb += 1
-                logger.error("[ERROR] Error while creating dir: %s\n%s",
+                logger.error("Error while creating dir: %s\n%s",
                     enc(out_dirpath), err)
 
         for fname in filenames:
@@ -66,7 +66,7 @@ def update_repo(input_path: str, dest_path: str) -> None:
                         enc(out_filepath))
                 except PermissionError as err:
                     errors_nb += 1
-                    logger.error("[ERROR] Error while copying %s to %s\n%s",
+                    logger.error("Error while copying %s to %s\n%s",
                         enc(in_filepath), enc(out_filepath), err)
     logger.debug("ENDED COPY PHASE FOR %s", os.path.basename(input_path))
     logger.info("Copy phase duration: %s",
@@ -93,7 +93,7 @@ def update_repo(input_path: str, dest_path: str) -> None:
             logger.debug("Removed file: %s", enc(fpath))
         except (PermissionError, OSError) as err:
             errors_nb += 1
-            logger.error("[ERROR] Error while trying to remove file: %s\n%s",
+            logger.error("Error while trying to remove file: %s\n%s",
                 enc(fpath), err)
     for dpath in reversed(dirs_to_rm):
         time.sleep(0.1)
@@ -102,8 +102,7 @@ def update_repo(input_path: str, dest_path: str) -> None:
             logger.debug("Removed dir: %s", enc(dpath))
         except (PermissionError, OSError) as err:
             errors_nb += 1
-            logger.debug("[ERROR] Error while removing dir: %s\n%s", enc(dpath),
-                err)
+            logger.error("Error while removing dir: %s\n%s", enc(dpath), err)
 
     logger.debug("ENDED REMOVAL PHASE FOR %s", os.path.basename(input_path))
     logger.info("Removal phase duration: %s",
