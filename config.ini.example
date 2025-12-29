@@ -3,6 +3,11 @@
 dir1 = X:\whatever
 dir2 = Y:\What ever\dir
 
+[EXCLUDE]
+# Key names have no impact, do not end dir by "\" !
+dir1 = X:\whatever\super_heavy
+dir2 = Y:\What ever\dir\temporary
+
 [OUTPUT]
 # Drive name to detect and overwrite drive letter contained in 'path'
 drive_name = MY-DISK

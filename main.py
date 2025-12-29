@@ -37,14 +37,18 @@ def get_drive_name(letter: str) -> str:
 def enc(to_be_escaped: str) -> str:
     return str(to_be_escaped.encode("utf-8"))[2:-1]
 
-def update_repo(input_path: str, dest_path: str) -> None:
+def update_repo(input_path: str, dest_path: str, excluded_paths: list | None = None) -> None:
     # Copy phase
     logger.debug("STARTING COPY PHASE FOR %s", os.path.basename(input_path))
     start_time = time.time()
 
+    if not excluded_paths:
+        excluded_paths = []
     errors_nb = 0
     out_dirpath, in_filepath, out_filepath = "", "", ""
     for (in_dirpath, _, filenames) in os.walk(input_path):
+        if in_dirpath in excluded_paths:
+            continue
         out_dirpath = in_dirpath.replace(input_path, dest_path)
         if not os.path.exists(out_dirpath):
             try:
@@ -165,6 +169,10 @@ if __name__ == '__main__':
         logger.error("Output_Path %s is not a directory", enc(main_out_path))
         sys.exit()
 
+    excluded_paths = []
+    for target_dir in config['EXCLUDE']:
+        excluded_paths.append(config['EXCLUDE'][target_dir])
+
     for target_dir in config['INPUT']:
         in_path = config['INPUT'][target_dir]
         out_path = os.path.join(main_out_path, os.path.basename(in_path))
@@ -172,7 +180,7 @@ if __name__ == '__main__':
             logger.error("input_path %s is not a directory", enc(in_path))
         else:
             logger.info("working on: %s/", os.path.basename(in_path))
-            update_repo(in_path, out_path)
+            update_repo(in_path, out_path, excluded_paths)
 
     logger.info("All folders synchronized, you can close me!")
     # freeze output for windows usage
