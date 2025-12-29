@@ -1,5 +1,5 @@
 [INPUT]
-# Key names have no impact
+# Key names have no impact, do not end dir by "\" !
 dir1 = X:\whatever
 dir2 = Y:\What ever\dir
 
