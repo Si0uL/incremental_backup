@@ -119,6 +119,7 @@ if __name__ == '__main__':
     log_idx = 1
     log_file_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
+        "logs",
         datetime.today().strftime("%Y%m%d") + "-1.log"
     )
     while os.path.exists(log_file_path):
